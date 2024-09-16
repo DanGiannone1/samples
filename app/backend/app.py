@@ -136,4 +136,5 @@ def chat():
     return jsonify(final_response)
 
 if __name__ == '__main__':
+    print(aoai_deployment)
     app.run(debug=True)

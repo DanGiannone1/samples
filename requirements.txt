@@ -1,6 +1,9 @@
-azure-ai-documentintelligence==1.0.0b1
+azure-ai-documentintelligence==1.0.0b2
 azure-cosmos==4.5.1
 azure-search-documents==11.4.0
 openai==1.35.13
 python-dotenv
-llama-index
+flask
+langchain-openai
+azure-search-documents
+azure-core
