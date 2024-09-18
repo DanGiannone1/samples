@@ -1,11 +1,11 @@
 [
     {
-      "question": "What style and material are my roof",
-      "ground_truth": "The roof is a pitched style. The building has a gable style roof. The roofing materials are asphalt shingles"
-    },
-    {
       "question": "What year was my house built?",
       "ground_truth": "Your house was built in 2019"
+    },  
+    {
+      "question": "What style and material are my roof",
+      "ground_truth": "The roof is a pitched style. The building has a gable style roof. The roofing materials are asphalt shingles"
     },
     {
       "question": "How many BTUs is my HVAC?",

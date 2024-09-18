@@ -13,8 +13,8 @@ from langchain_openai import AzureChatOpenAI
 
 load_dotenv()
 
-aoai_deployment = os.getenv("AOAI_DEPLOYMENT")
-aoai_key = os.getenv("AOAI_KEY")
+aoai_deployment = os.getenv("AOAI_DEPLOYMENT_NAME")
+aoai_key = os.getenv("AOAI_API_KEY")
 aoai_endpoint = os.getenv("AOAI_ENDPOINT")
 
 aoai_client = AzureOpenAI(  
@@ -264,14 +264,6 @@ def run_evaluations(question: str, ground_truth: str, api_response: Dict[str, An
     print(f"\n{Fore.CYAN}{'='*80}")
     return evaluations
 
-def main():
-    questions = load_questions('tests.json')
-    
-    for item in questions:
-        print(f"\n{Fore.CYAN}Evaluating: {Style.RESET_ALL}{item['question']}")
-        response = call_chat_api(item['question'])
-        run_evaluations(item['question'], item['ground_truth'], response)
-        input(f"\n{Fore.YELLOW}Press Enter to continue to the next question...{Style.RESET_ALL}")
 
 def extract_evaluation_output(evaluation: str) -> Dict[str, str]:
     thoughts = ""
@@ -286,6 +278,15 @@ def extract_evaluation_output(evaluation: str) -> Dict[str, str]:
     return {"thoughts": thoughts, "stars": stars}
 
 
+def main():
+    questions = load_questions('tests.json')
+    print(f"\n{Fore.YELLOW}Loaded {len(questions)} questions from the file.")
+    
+    for item in questions:
+        print(f"\n{Fore.CYAN}Evaluating: {Style.RESET_ALL}{item['question']}")
+        response = call_chat_api(item['question'])
+        run_evaluations(item['question'], item['ground_truth'], response)
+        input(f"\n{Fore.YELLOW}Press Enter to continue to the next question...{Style.RESET_ALL}")
 
 if __name__ == "__main__":
     

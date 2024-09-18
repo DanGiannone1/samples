@@ -135,6 +135,44 @@ def tool_inference_aoai(messages: List[Dict[str, str]], deployment: str, tools: 
         logger.error("Error in tool inference: %s", e)
         return None
 
+def stream_inference_aoai(messages: List[Dict[str, str]], deployment: str) -> str:
+    """
+    Stream a chat completion from Azure OpenAI.
+
+    Parameters
+    ----------
+    messages : List[Dict[str, str]]
+        The list of messages in the conversation.
+    deployment : str
+        The model deployment name.
+
+    Returns
+    -------
+    str
+        The full response content.
+
+    """
+    try:
+        response = aoai_client.chat.completions.create(
+            model=deployment,
+            messages=messages, 
+            stream=True
+        )
+
+        full_response = ""
+        for chunk in response:
+            if chunk.choices:
+                delta = chunk.choices[0].delta
+                if delta and delta.content is not None:
+                    full_response += delta.content
+                    print(delta.content, end='', flush=True)  # Print content as it arrives. Replace with yield in an actual application.
+        print('\n\n')
+
+        return full_response
+    except Exception as e:
+        logger.error("Error in streaming chat completion: %s", e)
+        return ""
+
 def run_examples():
     """Run example usage of the Azure OpenAI functions."""
     
@@ -177,6 +215,18 @@ def run_examples():
         logger.info("Total tokens used: %s", response.usage.total_tokens)
     else:
         logger.warning("Failed to process tool inference")
+
+
+    #Streaming example
+    messages = [
+        {"role": "system", "content": "You are a helpful AI assistant"},
+        {"role": "user", "content": "What color is the sky?"},
+    ]
+
+    full_response = stream_inference_aoai(messages, aoai_deployment)
+    logger.info("Streaming completed successfully")
+    logger.info("Full response: %s", full_response)
+
 
 if __name__ == "__main__":
     run_examples()

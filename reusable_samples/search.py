@@ -1,66 +1,89 @@
 """
-Search module 
+Search module for hybrid search using Azure Cognitive Search and Azure OpenAI.
 
+This module provides functionality for performing hybrid searches
+combining traditional keyword search with vector search.
+
+Requirements:
+    azure-search-documents
+    azure-identity
+    langchain-openai
+    openai
 """
 
-# Standard library imports
-import json
 import os
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import logging
+from typing import List, Dict, Any, Optional
+from functools import wraps
 
-# Third-party imports
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
 from azure.search.documents.models import VectorizedQuery
 from dotenv import load_dotenv
-from langchain_openai import AzureChatOpenAI
-from openai import AzureOpenAI
 
 # Local imports
-
-
+from aoai import generate_embeddings_aoai  # Import from your AOAI module
 
 # Load environment variables
 load_dotenv()
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Azure Cognitive Search configuration
-AI_SEARCH_ENDPOINT = os.environ["AZURE_SEARCH_ENDPOINT"]
-AI_SEARCH_KEY = os.environ["AZURE_SEARCH_KEY"]
-AI_SEARCH_INDEX = os.environ["AZURE_SEARCH_INDEX"]
+AI_SEARCH_ENDPOINT = os.environ.get("AZURE_SEARCH_ENDPOINT")
+AI_SEARCH_KEY = os.environ.get("AZURE_SEARCH_KEY")
+AI_SEARCH_INDEX = os.environ.get("AZURE_SEARCH_INDEX")
 
-# Azure OpenAI configuration
-AOAI_DEPLOYMENT = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME")
-AOAI_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-AOAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+def error_handler(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            logger.error(f"Error in {func.__name__}: {str(e)}")
+            raise
+    return wrapper
 
-# Initialize clients
-search_client = SearchClient(AI_SEARCH_ENDPOINT, AI_SEARCH_INDEX, AzureKeyCredential(AI_SEARCH_KEY))
+@error_handler
+def get_search_client() -> SearchClient:
 
-aoai_client = AzureOpenAI(
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-    api_key=os.getenv("AZURE_OPENAI_KEY"),
-    api_version="2023-05-15"
-)
-
-
-import os
-from dotenv import load_dotenv
-
-
-
-
-# Azure Cosmos DB
-
-
-
-
-
-def hybrid_search(query):
-    """
-
-    """
+    if not all([AI_SEARCH_ENDPOINT, AI_SEARCH_KEY, AI_SEARCH_INDEX]):
+        raise ValueError("Azure AI Search configuration is incomplete")
     
-    query_vector = generate_embeddings(query)
+    logger.info("Initializing Azure AI Search client")
+    return SearchClient(AI_SEARCH_ENDPOINT, AI_SEARCH_INDEX, AzureKeyCredential(AI_SEARCH_KEY))
+
+@error_handler
+def hybrid_search(query: str) -> List[Dict[str, Any]]:
+    """
+    Perform a hybrid search using both keyword and vector search capabilities.
+
+    Parameters
+    ----------
+    query : str
+        The search query.
+
+    Returns
+    -------
+    List[Dict[str, Any]]
+        A list of search results, each containing id, title, content, and score.
+
+    Raises
+    ------
+    Exception
+        If there's an error during the search process.
+    """
+    logger.info(f"Performing hybrid search for query: {query}")
+    search_client = get_search_client()
+
+    embedding_response = generate_embeddings_aoai(query)
+    if embedding_response is None:
+        logger.error("Failed to generate embeddings for the query")
+        return []
+
+    query_vector = embedding_response.data[0].embedding
     vector_query = VectorizedQuery(vector=query_vector, k_nearest_neighbors=3, fields="searchVector")
     filter_value = "isSearchable eq true"
 
@@ -81,25 +104,20 @@ def hybrid_search(query):
         }
         formatted_results.append(formatted_result)
 
+    logger.info(f"Hybrid search returned {len(formatted_results)} results")
     return formatted_results
 
-
-    
-
-
-def generate_embeddings(text, model="text-embedding-ada-002"):
-    """
-    Generate embeddings for the given text using Azure OpenAI.
-
-    Args:
-        text (str): The text to generate embeddings for.
-        model (str): The name of the embedding model to use.
-
-    Returns:
-        list: The generated embedding vector.
-    """
-    return aoai_client.embeddings.create(input=[text], model=model).data[0].embedding
+def run_examples():
+    """Example usage of the search module."""
+    try:
+        query = "example query"
+        logger.info(f"Performing hybrid search with query: {query}")
+        results = hybrid_search(query)
+        logger.info(f"Search returned {len(results)} results")
+        for result in results:
+            logger.info(f"Result: {result['title']} (Score: {result['score']})")
+    except Exception as e:
+        logger.error(f"An error occurred during the search: {str(e)}")
 
 if __name__ == "__main__":
-    # Example usage
-    hybrid_search("example query")
+    run_examples()

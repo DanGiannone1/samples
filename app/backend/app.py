@@ -17,9 +17,11 @@ load_dotenv()
 app = Flask(__name__)
 
 # Azure OpenAI configuration
-aoai_deployment = os.getenv("AOAI_DEPLOYMENT")
-aoai_key = os.getenv("AOAI_KEY")
+aoai_deployment = os.getenv("AOAI_DEPLOYMENT_NAME")
+aoai_key = os.getenv("AOAI_API_KEY")
 aoai_endpoint = os.getenv("AOAI_ENDPOINT")
+
+
 
 # Azure AI Search configuration
 search_endpoint = os.getenv('AZURE_SEARCH_ENDPOINT')
@@ -49,7 +51,14 @@ primary_llm = AzureChatOpenAI(
 QUERY_TRANSLATION_PROMPT = """
 You are an AI assistant tasked with translating user queries into effective search queries. 
 Your goal is to create a search query that will retrieve the most relevant documents from a search index.
-Analyze the user's input and generate a concise, relevant search query.
+Analyze the user's input and generate a concise, relevant search query. Try to structure your query in a way that is rich in key terms. 
+
+#Examples#
+
+User: What year was my house built?
+Search Query: house built year
+
+
 """
 
 RAG_SYSTEM_PROMPT = """
