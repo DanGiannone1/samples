@@ -30,10 +30,16 @@ logging.getLogger('azure.identity').setLevel(logging.WARNING)
 
 class ADLSManager:
     def __init__(self):
+        """
+        Initialize the ADLSManager with environment variables and blob service client.
+        """
         self._load_env_variables()
         self.blob_service_client = self._get_blob_service_client()
 
     def _load_env_variables(self):
+        """
+        Load environment variables required for Azure Data Lake Storage operations.
+        """
         load_dotenv()
         self.storage_account_name = os.environ.get("STORAGE_ACCOUNT_NAME")
         self.storage_account_key = os.environ.get("STORAGE_ACCOUNT_KEY")
@@ -44,6 +50,12 @@ class ADLSManager:
             raise ValueError("STORAGE_ACCOUNT_NAME environment variable is not set")
 
     def _get_blob_service_client(self) -> BlobServiceClient:
+        """
+        Get the Blob Service Client using either key-based authentication or DefaultAzureCredential.
+
+        Returns:
+            BlobServiceClient: The initialized Blob Service Client.
+        """
         logger.info("Initializing Blob service client")
         if self.storage_account_key:
             logger.info("Using key-based authentication for Blob storage")
@@ -61,6 +73,17 @@ class ADLSManager:
             return BlobServiceClient(account_url=account_url, credential=credential)
 
     def upload_to_blob(self, file_content: Union[bytes, io.IOBase], filename: str, container_name: str = None) -> Dict[str, str]:
+        """
+        Upload a file to Azure Blob Storage.
+
+        Args:
+            file_content (Union[bytes, io.IOBase]): The content of the file to upload.
+            filename (str): The name of the file in the blob storage.
+            container_name (str, optional): The name of the container to upload to. Defaults to self.storage_account_container.
+
+        Returns:
+            Dict[str, str]: A dictionary containing the upload message and the blob URL.
+        """
         container_name = container_name or self.storage_account_container
         container_client = self.blob_service_client.get_container_client(container_name)
         blob_client = container_client.get_blob_client(filename)
@@ -74,6 +97,16 @@ class ADLSManager:
         return {"message": f"File {filename} uploaded successfully", "blob_url": blob_client.url}
 
     def list_blobs_in_folder(self, folder_name: str, container_name: str = None) -> List[Any]:
+        """
+        List all blobs in a specified folder within a container.
+
+        Args:
+            folder_name (str): The name of the folder to list blobs from.
+            container_name (str, optional): The name of the container. Defaults to self.storage_account_container.
+
+        Returns:
+            List[Any]: A list of blob objects in the specified folder.
+        """
         container_name = container_name or self.storage_account_container
         container_client = self.blob_service_client.get_container_client(container_name)
         
@@ -83,6 +116,18 @@ class ADLSManager:
                   destination_blob_name: str, 
                   source_container_name: str = None, 
                   destination_container_name: str = None) -> Dict[str, str]:
+        """
+        Move a blob from one location to another within Azure Blob Storage.
+
+        Args:
+            source_blob_name (str): The name of the source blob.
+            destination_blob_name (str): The name of the destination blob.
+            source_container_name (str, optional): The name of the source container. Defaults to self.storage_account_container.
+            destination_container_name (str, optional): The name of the destination container. Defaults to source_container_name.
+
+        Returns:
+            Dict[str, str]: A dictionary containing the move message.
+        """
         source_container_name = source_container_name or self.storage_account_container
         destination_container_name = destination_container_name or source_container_name
 
@@ -98,37 +143,50 @@ class ADLSManager:
         logger.info(message)
         return {"message": message}
 
+def example_upload_local_file():
+    """Example usage of upload_to_blob function for uploading a local file."""
+    adls_manager = ADLSManager()
+    sample_file_path = "D:/temp/djg/337 Goldman Drive Inspection Report 20230730.pdf"
+    logger.info("Uploading local file...")
+    with open(sample_file_path, 'rb') as file:
+        upload_result = adls_manager.upload_to_blob(file, os.path.basename(sample_file_path))
+    logger.info(f"Local file upload: {upload_result['message']}")
+
+def example_upload_bytestream():
+    """Example usage of upload_to_blob function for uploading a file as bytestream."""
+    adls_manager = ADLSManager()
+    sample_file_path = "D:/temp/djg/337 Goldman Drive Inspection Report 20230730.pdf"
+    logger.info("Uploading file as bytestream...")
+    with open(sample_file_path, 'rb') as file:
+        file_content = file.read()
+    upload_result = adls_manager.upload_to_blob(file_content, "bytestream_" + os.path.basename(sample_file_path))
+    logger.info(f"Bytestream upload: {upload_result['message']}")
+
+def example_list_blobs():
+    """Example usage of list_blobs_in_folder function."""
+    adls_manager = ADLSManager()
+    logger.info("Listing blobs in 'source' folder...")
+    blobs = adls_manager.list_blobs_in_folder("source/")
+    logger.info(f"Found {len(blobs)} blobs in the 'source' folder")
+    return blobs
+
+def example_move_blob(blobs):
+    """Example usage of move_blob function."""
+    adls_manager = ADLSManager()
+    if blobs:
+        source_blob_name = blobs[0].name
+        destination_blob_name = source_blob_name.replace("source/", "processed/")
+        logger.info(f"Moving blob {source_blob_name} to {destination_blob_name}...")
+        move_result = adls_manager.move_blob(source_blob_name, destination_blob_name)
+        logger.info(move_result['message'])
+
 def run_examples():
+    """Run all example functions."""
     try:
-        adls_manager = ADLSManager()
-        
-        # Local file upload scenario
-        sample_file_path = "D:/temp/djg/337 Goldman Drive Inspection Report 20230730.pdf"
-        logger.info("Uploading local file...")
-        with open(sample_file_path, 'rb') as file:
-            upload_result = adls_manager.upload_to_blob(file, os.path.basename(sample_file_path))
-        logger.info(f"Local file upload: {upload_result['message']}")
-        
-        # Bytestream upload scenario
-        logger.info("Uploading file as bytestream...")
-        with open(sample_file_path, 'rb') as file:
-            file_content = file.read()
-        upload_result = adls_manager.upload_to_blob(file_content, "bytestream_" + os.path.basename(sample_file_path))
-        logger.info(f"Bytestream upload: {upload_result['message']}")
-        
-        # Example of listing blobs in a folder
-        logger.info("Listing blobs in 'source' folder...")
-        blobs = adls_manager.list_blobs_in_folder("source/")
-        logger.info(f"Found {len(blobs)} blobs in the 'source' folder")
-
-        # Example of moving a blob
-        if blobs:
-            source_blob_name = blobs[0].name
-            destination_blob_name = source_blob_name.replace("source/", "processed/")
-            logger.info(f"Moving blob {source_blob_name} to {destination_blob_name}...")
-            move_result = adls_manager.move_blob(source_blob_name, destination_blob_name)
-            logger.info(move_result['message'])
-
+        example_upload_local_file()
+        example_upload_bytestream()
+        blobs = example_list_blobs()
+        example_move_blob(blobs)
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
 
