@@ -88,16 +88,18 @@ def main():
     Main function to run the file processing script.
     """
     # Configuration
-    output_filename = 'codebase.txt'
+    output_filename = 'D:/temp/tmp_codebase/codebase.txt'
     separator = '-' * 80  # 80 dashes as a separator
     allowed_extensions = ['.py', '.json', '.md', '.env']
 
     # Hardcoded lists
-    folders_to_process = ['path/to/your/folder']
+    folders_to_process = ['D:/projects/samples/reusable_samples']
     files_to_process = [
         'indexing.py',
         'aoai.py',
-        'document_processing.py'
+        'document_processing.py',
+        'cosmosdb.py',
+        'search.py'
     ]
 
     print(f"Current working directory: {os.getcwd()}")
