@@ -7,47 +7,36 @@ clear and concise examples of how to run basic ADLS operations using a particula
 
 Requirements:
     azure-storage-blob==12.22.0
-    python-dotenv
+
 """
 
 import os
-import logging
 from typing import Union, Dict, Any, List
 from dotenv import load_dotenv
 from azure.storage.blob import BlobServiceClient
 from azure.identity import DefaultAzureCredential
 import io
 
-# Set up logging
-logging.basicConfig(level=logging.WARNING)  # Set to WARNING to suppress INFO logs
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)  # Set our logger to INFO
-
-# Disable other loggers
-logging.getLogger('azure').setLevel(logging.WARNING)
-logging.getLogger('azure.storage').setLevel(logging.WARNING)
-logging.getLogger('azure.identity').setLevel(logging.WARNING)
-
 class ADLSManager:
-    def __init__(self):
+    def __init__(self, storage_account_name=None, storage_account_container=None):
         """
         Initialize the ADLSManager with environment variables and blob service client.
         """
-        self._load_env_variables()
+        self._load_env_variables(storage_account_name, storage_account_container)
         self.blob_service_client = self._get_blob_service_client()
 
-    def _load_env_variables(self):
+    def _load_env_variables(self, storage_account_name=None, storage_account_container=None):
         """
         Load environment variables required for Azure Data Lake Storage operations.
         """
         load_dotenv()
-        self.storage_account_name = os.environ.get("STORAGE_ACCOUNT_NAME")
+        self.storage_account_name = storage_account_name or os.environ.get("STORAGE_ACCOUNT_NAME")
         self.storage_account_key = os.environ.get("STORAGE_ACCOUNT_KEY")
-        self.storage_account_container = os.environ.get("STORAGE_ACCOUNT_CONTAINER", "documents")
+        self.storage_account_container = storage_account_container or os.environ.get("STORAGE_ACCOUNT_CONTAINER", "documents")
         self.tenant_id = os.environ.get("TENANT_ID", '16b3c013-d300-468d-ac64-7eda0820b6d3')
 
         if not self.storage_account_name:
-            raise ValueError("STORAGE_ACCOUNT_NAME environment variable is not set")
+            raise ValueError("STORAGE_ACCOUNT_NAME must be provided or set as an environment variable")
 
     def _get_blob_service_client(self) -> BlobServiceClient:
         """
@@ -56,13 +45,13 @@ class ADLSManager:
         Returns:
             BlobServiceClient: The initialized Blob Service Client.
         """
-        logger.info("Initializing Blob service client")
+        print("Initializing Blob service client")
         if self.storage_account_key:
-            logger.info("Using key-based authentication for Blob storage")
+            print("Using key-based authentication for Blob storage")
             connection_string = f"DefaultEndpointsProtocol=https;AccountName={self.storage_account_name};AccountKey={self.storage_account_key};EndpointSuffix=core.windows.net"
             return BlobServiceClient.from_connection_string(connection_string)
         else:
-            logger.info("Using DefaultAzureCredential for Blob storage authentication")
+            print("Using DefaultAzureCredential for Blob storage authentication")
             account_url = f"https://{self.storage_account_name}.blob.core.windows.net"
             credential = DefaultAzureCredential(
                 interactive_browser_tenant_id=self.tenant_id,
@@ -93,7 +82,7 @@ class ADLSManager:
         else:
             blob_client.upload_blob(file_content, overwrite=True)
         
-        logger.info(f"File {filename} uploaded successfully")
+        print(f"File {filename} uploaded successfully")
         return {"message": f"File {filename} uploaded successfully", "blob_url": blob_client.url}
 
     def list_blobs_in_folder(self, folder_name: str, container_name: str = None) -> List[Any]:
@@ -140,34 +129,33 @@ class ADLSManager:
         destination_blob.start_copy_from_url(source_blob.url)
         source_blob.delete_blob()
         message = f"Moved blob from {source_blob_name} to {destination_blob_name}"
-        logger.info(message)
+        print(message)
         return {"message": message}
-
-def example_upload_local_file():
+    
+    
+def example_upload_local_file(sample_file_path):
     """Example usage of upload_to_blob function for uploading a local file."""
     adls_manager = ADLSManager()
-    sample_file_path = "D:/temp/djg/337 Goldman Drive Inspection Report 20230730.pdf"
-    logger.info("Uploading local file...")
+    print("Uploading local file...")
     with open(sample_file_path, 'rb') as file:
         upload_result = adls_manager.upload_to_blob(file, os.path.basename(sample_file_path))
-    logger.info(f"Local file upload: {upload_result['message']}")
+    print(f"Local file upload: {upload_result['message']}")
 
-def example_upload_bytestream():
+def example_upload_bytestream(sample_file_path):
     """Example usage of upload_to_blob function for uploading a file as bytestream."""
     adls_manager = ADLSManager()
-    sample_file_path = "D:/temp/djg/337 Goldman Drive Inspection Report 20230730.pdf"
-    logger.info("Uploading file as bytestream...")
+    print("Uploading file as bytestream...")
     with open(sample_file_path, 'rb') as file:
         file_content = file.read()
     upload_result = adls_manager.upload_to_blob(file_content, "bytestream_" + os.path.basename(sample_file_path))
-    logger.info(f"Bytestream upload: {upload_result['message']}")
+    print(f"Bytestream upload: {upload_result['message']}")
 
 def example_list_blobs():
     """Example usage of list_blobs_in_folder function."""
     adls_manager = ADLSManager()
-    logger.info("Listing blobs in 'source' folder...")
+    print("Listing blobs in 'source' folder...")
     blobs = adls_manager.list_blobs_in_folder("source/")
-    logger.info(f"Found {len(blobs)} blobs in the 'source' folder")
+    print(f"Found {len(blobs)} blobs in the 'source' folder")
     return blobs
 
 def example_move_blob(blobs):
@@ -176,19 +164,14 @@ def example_move_blob(blobs):
     if blobs:
         source_blob_name = blobs[0].name
         destination_blob_name = source_blob_name.replace("source/", "processed/")
-        logger.info(f"Moving blob {source_blob_name} to {destination_blob_name}...")
+        print(f"Moving blob {source_blob_name} to {destination_blob_name}...")
         move_result = adls_manager.move_blob(source_blob_name, destination_blob_name)
-        logger.info(move_result['message'])
-
-def run_examples():
-    """Run all example functions."""
-    try:
-        example_upload_local_file()
-        example_upload_bytestream()
-        blobs = example_list_blobs()
-        example_move_blob(blobs)
-    except Exception as e:
-        logger.error(f"An error occurred: {str(e)}")
+        print(move_result['message'])
 
 if __name__ == "__main__":
-    run_examples()
+    sample_file_path = "D:/temp/djg/337 Goldman Drive Inspection Report 20230730.pdf"
+    
+    example_upload_local_file(sample_file_path)
+    example_upload_bytestream(sample_file_path)
+    blobs = example_list_blobs()
+    example_move_blob(blobs)
