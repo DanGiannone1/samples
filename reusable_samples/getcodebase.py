@@ -95,11 +95,11 @@ def main():
     # Hardcoded lists
     folders_to_process = ['D:/projects/samples/reusable_samples']
     files_to_process = [
-        'indexing.py',
+        'ai_search.py',
         'aoai.py',
-        'document_processing.py',
-        'cosmosdb.py',
-        'search.py'
+        'adls.py',
+        'cosmosdb.py'
+
     ]
 
     print(f"Current working directory: {os.getcwd()}")

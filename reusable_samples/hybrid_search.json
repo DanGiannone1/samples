@@ -1,0 +1,7 @@
+{
+    "top": 3,
+    "select": ["id", "content"],
+    "text_fields": ["content"],
+    "vector_fields": "content_vector, content_vector2",
+    "k_nearest_neighbors": 3
+}

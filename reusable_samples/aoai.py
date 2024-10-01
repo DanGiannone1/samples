@@ -61,8 +61,7 @@ def generate_embeddings_aoai(text: str, model: str = "text-embedding-ada-002") -
     """
     try:
         response = aoai_client.embeddings.create(input=[text], model=model)
-        print("Embeddings generated successfully")
-        return response
+        return response.data[0].embedding
     except Exception as e:
         print(f"Error generating embeddings: {e}")
         return None

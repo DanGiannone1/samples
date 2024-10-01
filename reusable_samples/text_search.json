@@ -1,0 +1,5 @@
+{
+        "top": 3,
+        "select": ["id", "content"],
+        "text_fields": ["content"]
+}
