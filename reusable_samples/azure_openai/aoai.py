@@ -89,7 +89,6 @@ def inference_aoai(messages: List[Dict[str, Union[str, List[Dict[str, Union[str,
             model=deployment,
             messages=messages
         )
-        print("Inference completed")
         return response
     except Exception as e:
         print(f"Error in inference: {e}")

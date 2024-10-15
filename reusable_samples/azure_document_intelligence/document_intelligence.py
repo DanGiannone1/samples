@@ -95,6 +95,19 @@ def run_examples():
         # Example 1: Read a document from a blob URL
         blob_url = f"https://{storage_account_name}.blob.core.windows.net/{storage_account_container}/337 Goldman Drive.pdf"
         url_result = doc_intelligence_manager.read_document(blob_url, model_id)
+
+        for paragraph in url_result.paragraphs:
+            print(f"Detected paragraph: {paragraph.content}")
+            print(f"Page number: {paragraph.page_number}")
+
+        for pages in url_result.pages:
+            print(f"Detected page: {pages.content}")
+            #print page number
+            print(f"Page number: {pages.page_number}")
+
+        for tables in url_result.tables:
+            print(f"Detected table: {tables.content}")
+
         logger.info("Document read from URL successfully")
         
         # Example 2: Read a document from a local file

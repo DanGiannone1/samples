@@ -6,14 +6,14 @@ import base64
 import json
 from pdf2image import convert_from_path
 from openai import AzureOpenAI
-import fitz  # PyMuPDF
+#import fitz  # PyMuPDF
 from PIL import Image
 from pydantic import BaseModel
 from PyPDF2 import PdfReader
 #local imports
 from aoai import inference_structured_output_aoai, inference_aoai
-from document_processing import download_blob
 
+from adls import ADLSManager  # Import the ADLSManager class
 API_VERSION = "2024-08-01-preview"
 
 # Azure OpenAI configuration
@@ -167,6 +167,15 @@ Clear blue sky visible
 
 """
 
+
+
+# ... (rest of the imports and configurations remain the same)
+
+# Initialize ADLSManager
+adls_manager = ADLSManager()
+
+
+
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode("utf-8")
@@ -246,8 +255,15 @@ def create_consolidated_markdown(processed_pages):
         consolidated_output += "---\n\n"  # Add a separator between pages
     return consolidated_output
 
-def main(input_path, filename):
-    input_file = os.path.join(input_path, filename)
+def main(input_path, filename, container):
+    # Use the new download_blob method from ADLSManager
+    temp_file_path = os.path.join(input_path, "temp", filename)
+    os.makedirs(os.path.dirname(temp_file_path), exist_ok=True)
+    
+    download_result = adls_manager.download_blob(filename, temp_file_path, container)
+    print(download_result['message'])
+    
+    input_file = temp_file_path
     
     # Analyze document structure
     document_structure = analyze_document_structure(input_file)
@@ -280,15 +296,14 @@ def main(input_path, filename):
         f.write(consolidated_markdown)
 
     print(f"Processing complete. Consolidated results saved to {output_file}")
-
+    
+    # Clean up the temporary file
+    os.remove(temp_file_path)
 
 if __name__ == "__main__":
     # Hardcode the path and filename here
     input_path = "C:/temp/data/djg"
     filename = "337 Goldman Drive.pdf"
-    temp_path = "C:/temp/data/djg/temp"
     container = 'djg'
     
-    download_blob(filename, f'{temp_path}/{filename}', container)
-    
-    main(input_path, filename)
+    main(input_path, filename, container)

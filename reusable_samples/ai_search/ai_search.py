@@ -26,15 +26,29 @@ from azure.search.documents.indexes.models import (
     SearchFieldDataType,
     VectorSearch,
     HnswAlgorithmConfiguration,
-    VectorSearchProfile
+    VectorSearchProfile,
+    TagScoringFunction,
+    TagScoringParameters,
+    FreshnessScoringFunction,
+    FreshnessScoringParameters,
+    ScoringProfile,
+    ScoringFunctionInterpolation,
+    ScoringFunctionAggregation,
+    SemanticConfiguration,
+    SemanticPrioritizedFields,
+    SemanticField
+
 )
-import json
-import time
+from azure.search.documents.indexes.models import (
+     ScoringProfile, TagScoringParameters, ScoringFunction, ScoringFunctionInterpolation, ScoringFunctionAggregation
+)
 
 from azure.identity import DefaultAzureCredential
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import the generate_embeddings_aoai function from aoai.py
-from aoai import generate_embeddings_aoai
+from azure_openai.aoai import generate_embeddings_aoai
 
 class AISearchManager:
     def __init__(self, search_endpoint=None, search_index_name=None):
@@ -42,6 +56,10 @@ class AISearchManager:
         Initialize the AISearchManager with Azure Cognitive Search configuration.
         """
         load_dotenv()  # Load environment variables
+        self.search_endpoint = None
+        self._search_index_name = None
+        self.search_key = None
+        self.tenant_id = None
         self._load_env_variables(search_endpoint, search_index_name)
         self.search_index_client = self._get_search_index_client()
         self.search_client = self._get_search_client()
@@ -51,12 +69,25 @@ class AISearchManager:
         Load environment variables required for Azure Cognitive Search operations.
         """
         self.search_endpoint = search_endpoint or os.environ.get("AZURE_SEARCH_ENDPOINT")
-        self.search_index_name = search_index_name or os.environ.get("AZURE_SEARCH_INDEX")
+        self._search_index_name = search_index_name or os.environ.get("AZURE_SEARCH_INDEX")
         self.search_key = os.environ.get("AZURE_SEARCH_KEY")
         self.tenant_id = os.environ.get("TENANT_ID", '16b3c013-d300-468d-ac64-7eda0820b6d3')
 
-        if not all([self.search_endpoint, self.search_index_name]):
+        if not all([self.search_endpoint, self._search_index_name]):
             raise ValueError("Azure Cognitive Search configuration is incomplete")
+
+    @property
+    def search_index_name(self):
+        return self._search_index_name
+
+    @search_index_name.setter
+    def search_index_name(self, new_index_name):
+        if new_index_name:
+            self._search_index_name = new_index_name
+            # Update the search_client with the new index name
+            self.search_client = self._get_search_client()
+        else:
+            raise ValueError("search_index_name cannot be empty")
 
     def _get_credential(self):
         """
@@ -95,7 +126,8 @@ class AISearchManager:
         """
         print("Initializing Search client")
         credential = self._get_credential()
-        return SearchClient(self.search_endpoint, self.search_index_name, credential)
+        return SearchClient(self.search_endpoint, self._search_index_name, credential)
+
 
 
 
@@ -125,6 +157,7 @@ class AISearchManager:
                             searchable=True, vector_search_dimensions=1536, vector_search_profile_name="myHnswProfile")
             ]
 
+
             # Define vector search configuration
             vector_search = VectorSearch(
                 algorithms=[
@@ -138,14 +171,56 @@ class AISearchManager:
                 ]
             )
 
+
+
             # Create the index
-            index = SearchIndex(name=self.search_index_name, fields=fields, vector_search=vector_search)
+            index = SearchIndex(
+                name=self.search_index_name,
+                fields=fields,
+                vector_search=vector_search
+            )
             self.search_index_client.create_or_update_index(index)
             print("Index has been created")
             return True
         except Exception as e:
             print(f"Error creating index: {e}")
             return False
+
+
+
+    def create_search_index_from_config(self, config: dict) -> bool:
+        """
+        Create the search index based on a configuration dictionary.
+
+        Args:
+            config (dict): Dictionary containing the index configuration.
+
+        Returns:
+            bool: True if the index was created or already exists, False if there was an error.
+        """
+        
+        
+
+        try:
+            # Check if index exists
+            self.search_index_client.get_index(config["name"])
+            print(f"Index '{config['name']}' already exists")
+            return True
+        except Exception:
+            print(f"Creating new index '{config['name']}'")
+
+        try:
+            # Create the index using dictionary unpacking
+            index = SearchIndex(**config)
+            self.search_index_client.create_or_update_index(index)
+            print("Index has been created")
+            return True
+        except Exception as e:
+            print(f"Error creating index: {e}")
+            return False
+
+    
+        
 
     def upload_documents(self, documents: List[Dict[str, Any]]) -> bool:
         """
@@ -184,7 +259,7 @@ class AISearchManager:
             print("Failed to generate embedding for the query")
             return []
 
-        vector_query = VectorizedQuery(vector=query_vector, k_nearest_neighbors=top, fields="content_vector")
+        vector_query = VectorizedQuery(vector=query_vector, k_nearest_neighbors=top, fields="contentVector")
         
         results = self.search_client.search(
             search_text=query,
@@ -234,7 +309,7 @@ class AISearchManager:
             print("Failed to generate embedding for the query")
             return []
         
-        vector_query = VectorizedQuery(vector=query_vector, k_nearest_neighbors=top, fields="content_vector")
+        vector_query = VectorizedQuery(vector=query_vector, k_nearest_neighbors=top, fields="contentVector")
         
         results = self.search_client.search(
             vector_queries=[vector_query],
@@ -250,7 +325,7 @@ class AISearchManager:
 
         Args:
             document_ids (List[str]): A list of document IDs to delete.
-            
+
         Returns:
         bool: True if the documents were deleted successfully, False otherwise.
     """
@@ -260,6 +335,21 @@ class AISearchManager:
             return True
         except Exception as e:
             print(f"Error deleting documents: {e}")
+            return False
+
+    def delete_index(self) -> bool:
+        """
+        Delete the search index.
+
+        Returns:
+            bool: True if the index was successfully deleted, False otherwise.
+        """
+        try:
+            self.search_index_client.delete_index(self.search_index_name)
+            print(f"Index '{self.search_index_name}' has been deleted")
+            return True
+        except Exception as e:
+            print(f"Error deleting index '{self.search_index_name}': {e}")
             return False
 
     def hybrid_search_simple(self, query: str, top=3):
@@ -291,7 +381,37 @@ class AISearchManager:
 
         return results
 
+    def hybrid_search_simple_reranker(self, query: str, top=3):
+        """
+        Perform a hybrid search using both keyword and vector search capabilities.
 
+        Args:
+            query (str): The search query.
+
+        Returns:
+            The raw search results from Azure Cognitive Search.
+        """
+        print(f"Performing hybrid search for query: {query}")
+
+        # Generate embedding for the query
+        query_vector = generate_embeddings_aoai(query)
+        if not query_vector:
+            print("Failed to generate embedding for the query")
+            return []
+        
+        vector_query = VectorizedQuery(vector=query_vector, k_nearest_neighbors=3, fields="content_vector")
+        
+        results = self.search_client.search(
+            search_text=query,
+            vector_queries=[vector_query],
+            select=["id", "content"],
+            top=top,
+            query_type="semantic",  # Add this line to specify semantic query
+            semantic_configuration_name="semantic_config1"  # Add this line for the semantic config
+
+        )
+
+        return results
 
     def dynamic_search(self, query: str, config: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
         """
@@ -309,34 +429,45 @@ class AISearchManager:
 
         # Explicitly construct search parameters
         search_params = {
-            "top": config.get("top", 3),  # Default to 10 if not specified
-            "select": config.get("select", ["*"]),  # Default to all fields if not specified
-        }
+        "top": config.get("top", 3),
+        "select": config.get("select", ["*"]),
+    }
 
         text_fields = config.get('text_fields')
         vector_fields = config.get('vector_fields')
+        scoring_profile = config.get('scoring_profile')
+        scoring_parameters = config.get('scoring_parameters')
 
-        # Handle text search
         if text_fields:
             search_params['search_text'] = query
             search_params['search_fields'] = text_fields
 
-        # Handle vector search
         if vector_fields:
             query_vector = generate_embeddings_aoai(query)
             if not query_vector:
                 print("Failed to generate embedding for the query")
                 return []
 
+ 
+            # Create a VectorizedQuery for each vector field
+            vector_queries = []
+            for field in vector_fields:
+                print("Creating vector query for field:", str(field))
+                vector_query = VectorizedQuery(
+                    vector=query_vector,
+                    k_nearest_neighbors=config.get('k_nearest_neighbors', 3),
+                    fields=str(field)
+                )
+                vector_queries.append(vector_query)
 
-            vector_query = VectorizedQuery(
-                vector=query_vector,
-                k_nearest_neighbors=config.get('k_nearest_neighbors', 3),
-                fields='content_vector'
-            )
-            search_params['vector_queries'] = [vector_query]
+            search_params['vector_queries'] = vector_queries
 
-        # Determine and print the type of search being performed
+        if scoring_profile:
+            search_params['scoring_profile'] = scoring_profile
+            if scoring_parameters:
+                search_params['scoring_parameters'] = scoring_parameters
+
+        # Determine the type of search being performed
         if text_fields and vector_fields:
             print("Performing hybrid search")
         elif text_fields:
@@ -345,8 +476,6 @@ class AISearchManager:
             print("Performing vector search")
         else:
             raise ValueError("Either 'text_fields' or 'vector_fields' must be specified in the config")
-
-        # print the constructed search parameters
 
         print(f"Constructed search parameters: {search_params}")
 
@@ -359,12 +488,13 @@ def run_ai_search_examples():
     """
     Comprehensive example demonstrating the usage of AISearchManager with simple search functions.
     """
-    # Initialize AISearchManager
-    ai_search = AISearchManager(search_index_name='test')
 
-    # Create search index
-    ai_search.create_search_index()
-    time.sleep(1)  # Wait for index creation
+    import time
+
+    # Initialize AISearchManager
+    ai_search = AISearchManager(search_index_name='test2')
+
+    # Load index configuration from JSON file
 
     # Prepare sample documents with embeddings
     sample_documents = [
@@ -411,8 +541,6 @@ def run_ai_search_examples():
     for result in vector_results:
         print(f"ID: {result['id']}, Content: {result['content']}")
 
-    
-
     # Delete the uploaded documents
     ai_search.delete_documents(["1", "2"])
 
@@ -427,5 +555,129 @@ def run_ai_search_examples():
         for result in final_results:
             print(f"ID: {result['id']}, Content: {result['content']}")
 
+def test():
+
+    search_manager = AISearchManager(search_index_name='test_index_with_semantic_config')
+
+    
+    search_manager.create_search_index()
+
+def create_index_with_scoring_profile():
+
+    search_manager = AISearchManager()
+
+    category_scoring_profile = ScoringProfile(
+        name="categoryScoringProfile",
+        functions=[
+            TagScoringFunction(
+                field_name="category",
+                boost=5,
+                parameters=TagScoringParameters(tags_parameter="category"),
+                interpolation=ScoringFunctionInterpolation.LINEAR
+            )
+        ],
+        function_aggregation=ScoringFunctionAggregation.SUM
+        )
+
+
+    temporalId_scoring_profile = ScoringProfile(
+        name="temporalIdScoringProfile",
+        functions=[
+            FreshnessScoringFunction(
+                field_name="temporalId",
+                boost=2,
+                parameters=FreshnessScoringParameters(boosting_duration="P1095D"),
+                interpolation=ScoringFunctionInterpolation.LINEAR
+            )
+    ],
+    function_aggregation=ScoringFunctionAggregation.SUM
+)
+
+    config = {
+            "name": "djg_with_scoring_profile",
+            "fields": [
+                SimpleField(name="id", type=SearchFieldDataType.String, key=True, filterable=True),
+                SimpleField(name="temporalId", type=SearchFieldDataType.DateTimeOffset, filterable=True, facetable=True),
+                SimpleField(name="category", type=SearchFieldDataType.String, filterable=True, facetable=True),
+                SimpleField(name="sourceFileName", type=SearchFieldDataType.String, filterable=True),
+                SimpleField(name="sourcePages", type=SearchFieldDataType.String, filterable=True),
+                SearchableField(name="content", type=SearchFieldDataType.String),
+                SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
+                            searchable=True, vector_search_dimensions=1536, vector_search_profile_name="myHnswProfile")
+            ],
+            "vector_search": VectorSearch(
+                algorithms=[
+                    HnswAlgorithmConfiguration(name="myHnsw")
+                ],
+                profiles=[
+                    VectorSearchProfile(
+                        name="myHnswProfile",
+                        algorithm_configuration_name="myHnsw",
+                    )
+                ]
+            ),
+            'scoring_profiles': [category_scoring_profile, temporalId_scoring_profile]
+        }
+
+
+
+    search_manager.create_search_index_from_config(config)
+
+def test_scoring_profile():
+    # Azure Cognitive Search connection details
+    search_endpoint = os.environ.get("AZURE_SEARCH_ENDPOINT")
+    search_key = os.environ.get("AZURE_SEARCH_KEY")
+    index_name = "index-with-scoring-profile"
+
+    # Initialize the Search Client
+    search_endpoint = os.environ.get("AZURE_SEARCH_ENDPOINT")
+    search_key = os.environ.get("AZURE_SEARCH_KEY")
+    tenant_id = os.environ.get("TENANT_ID")
+
+    # Ensure the required parameters are available
+    if not search_endpoint:
+        raise ValueError("Azure Cognitive Search endpoint is not set")
+
+    # Get the appropriate credential
+    if search_key:
+        print("Using key-based authentication for Azure Cognitive Search")
+        credential = AzureKeyCredential(search_key)
+    else:
+        print("Using DefaultAzureCredential for Azure Cognitive Search authentication")
+        credential = DefaultAzureCredential(
+            interactive_browser_tenant_id=tenant_id,
+            visual_studio_code_tenant_id=tenant_id,
+            workload_identity_tenant_id=tenant_id,
+            shared_cache_tenant_id=tenant_id
+        )
+
+    search_client = SearchClient(endpoint=search_endpoint, index_name=index_name, credential=credential)
+
+
+    # Perform a search query
+    search_query = "technology"
+    search_query = "technology"
+    results = search_client.search(
+        search_text=search_query,
+        select="id,rating,content",
+        order_by="search.score() desc",
+        top=10,
+        scoring_profile="goldTagScoringProfile",
+        scoring_parameters=["rating-gold"]  
+    )
+
+    print(f"Search query: '{search_query}'")
+    print("Top 10 results:")
+    for result in results:
+        print(f"ID: {result['id']}, Rating: {result['rating']}, Score: {result['@search.score']:.2f}")
+        print(f"Content: {result['content'][:100]}...")
+        print("-" * 50)
+
 if __name__ == "__main__":
-    run_ai_search_examples()
+
+    test()
+    #create_index_with_scoring_profile()
+    #test_scoring_profile()
+    #run_ai_search_examples()
+
+

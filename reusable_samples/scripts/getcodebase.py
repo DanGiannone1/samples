@@ -98,7 +98,8 @@ def main():
         'ai_search.py',
         'aoai.py',
         'adls.py',
-        'cosmosdb.py'
+        'cosmosdb.py',
+        'document_intelligence.py'
 
     ]
 

@@ -1,0 +1,130 @@
+[
+    {
+      "id": "1",
+      "date": "2023-08-14T12:34:56Z",
+      "category": "Technology",
+      "sourceFileName": "tech_article_01.pdf",
+      "sourcePage": "1",
+      "content": "The tech world is abuzz with the latest advancements in artificial intelligence. From self-driving cars to AI-powered personal assistants, the possibilities seem endless. However, ethical concerns and the potential impact on the job market remain hot topics of debate."
+    },
+    {
+      "id": "2",
+      "date": "2023-01-22T09:12:34Z",
+      "category": "Technology",
+      "sourceFileName": "tech_article_01.pdf",
+      "sourcePage": "2",
+      "content": "Quantum computing is another area generating significant excitement. While still in its early stages, it has the potential to revolutionize fields like medicine, materials science, and financial modeling by solving problems that are currently intractable for classical computers."
+    },
+    {
+      "id": "3",
+      "date": "2023-05-03T17:56:12Z",
+      "category": "Technology",
+      "sourceFileName": "tech_article_01.pdf",
+      "sourcePage": "3",
+      "content": "The rise of the metaverse is blurring the lines between the physical and digital worlds. Virtual reality and augmented reality technologies are creating immersive experiences that are transforming the way we work, play, and interact with each other."
+    },
+    {
+      "id": "4",
+      "date": "2023-11-11T21:43:09Z",
+      "category": "Health",
+      "sourceFileName": "health_article_01.pdf",
+      "sourcePage": "1",
+      "content": "Maintaining a healthy lifestyle is crucial in today's fast-paced world. Regular exercise, a balanced diet, and adequate sleep are essential for physical and mental well-being. Mindfulness and stress management techniques are also gaining popularity."
+    },
+    {
+      "id": "5",
+      "date": "2023-07-04T10:23:45Z",
+      "category": "Health",
+      "sourceFileName": "health_article_01.pdf",
+      "sourcePage": "2",
+      "content": "The importance of mental health is finally being recognized.  Seeking help for conditions like anxiety and depression is becoming more socially acceptable, and innovative therapies are emerging to address the growing need for mental health support."
+    },
+    {
+      "id": "6",
+      "date": "2023-03-18T15:32:11Z",
+      "category": "Health",
+      "sourceFileName": "health_article_02.pdf",
+      "sourcePage": "1",
+      "content": "The COVID-19 pandemic has had a profound impact on global health. While vaccines have been developed, the long-term effects of the virus are still being studied. Public health measures and individual responsibility remain crucial in preventing future outbreaks." 
+    },
+    {
+      "id": "7",
+      "date": "2023-09-27T08:15:23Z",
+      "category": "Health",
+      "sourceFileName": "health_article_02.pdf",
+      "sourcePage": "2",
+      "content": "Personalized medicine is revolutionizing healthcare. By tailoring treatments to an individual's genetic makeup and lifestyle, doctors can achieve better outcomes and minimize side effects. This approach holds great promise for the future of medicine."
+    },
+    {
+      "id": "8",
+      "date": "2023-02-05T19:45:34Z",
+      "category": "Finance",
+      "sourceFileName": "finance_article_01.pdf",
+      "sourcePage": "1",
+      "content": "The world of finance is constantly evolving. From cryptocurrency to decentralized finance (DeFi), new technologies are disrupting traditional systems. Investors need to stay informed about these trends to make sound financial decisions."
+    },
+    {
+      "id": "9",
+      "date": "2023-10-12T11:28:56Z",
+      "category": "Finance",
+      "sourceFileName": "finance_article_01.pdf",
+      "sourcePage": "2",
+      "content": "Financial literacy is becoming increasingly important. Understanding concepts like budgeting, investing, and debt management is essential for achieving financial stability and reaching long-term financial goals."
+    },
+    {
+      "id": "10",
+      "date": "2023-06-21T14:01:23Z",
+      "category": "Finance",
+      "sourceFileName": "finance_article_02.pdf",
+      "sourcePage": "1",
+      "content": "The global economy is facing numerous challenges. Inflation, rising interest rates, and geopolitical instability are creating uncertainty for businesses and investors. Adaptability and careful planning are crucial in navigating these turbulent times."
+    },
+    {
+      "id": "11",
+      "date": "2023-04-03T20:34:12Z",
+      "category": "Finance",
+      "sourceFileName": "finance_article_02.pdf",
+      "sourcePage": "2",
+      "content": "Sustainable investing is gaining momentum. Investors are increasingly considering environmental, social, and governance (ESG) factors when making investment decisions. This trend is driving positive change and creating new opportunities for businesses and investors alike."
+    },
+    {
+      "id": "12",
+      "date": "2023-12-28T16:56:45Z",
+      "category": "Education",
+      "sourceFileName": "education_article_01.pdf",
+      "sourcePage": "1",
+      "content": "The education landscape is undergoing a transformation. Online learning and personalized learning experiences are becoming more prevalent. Technology is playing an increasingly important role in the classroom, providing students with access to a wealth of resources and opportunities."
+    },
+    {
+      "id": "13",
+      "date": "2023-05-15T09:48:32Z",
+      "category": "Education",
+      "sourceFileName": "education_article_01.pdf",
+      "sourcePage": "2",
+      "content": "The importance of lifelong learning is being emphasized. Skills development and continuous education are essential for staying competitive in the job market and adapting to the changing demands of the modern world."
+    },
+    {
+      "id": "14",
+      "date": "2023-01-08T13:21:09Z",
+      "category": "Education",
+      "sourceFileName": "education_article_02.pdf",
+      "sourcePage": "1",
+      "content": "The future of work is changing rapidly. Automation and artificial intelligence are transforming industries, requiring workers to adapt and acquire new skills. The education system needs to prepare students for the jobs of tomorrow."
+    },
+    {
+      "id": "15",
+      "date": "2023-07-29T18:09:43Z",
+      "category": "Education",
+      "sourceFileName": "education_article_02.pdf",
+      "sourcePage": "2",
+      "content": "Creativity and critical thinking are becoming increasingly valuable skills. The ability to solve problems, think outside the box, and innovate is essential for success in the 21st century. Education should foster these skills in students."
+    },
+    {
+      "id": "16",
+      "date": "2023-02-19T22:56:21Z",
+      "category": "Entertainment",
+      "sourceFileName": "entertainment_article_01.pdf",
+      "sourcePage": "1",
+      "content": "The entertainment industry is constantly evolving. Streaming services have revolutionized the way we consume movies and TV shows. The rise of social media has given creators new platforms to reach audiences and build communities."
+    }
+]

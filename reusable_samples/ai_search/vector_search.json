@@ -1,0 +1,6 @@
+{
+    "top": 3,
+    "select": ["id", "content"],
+    "vector_fields": ["contentVector", "fileNameVector"],
+    "k_nearest_neighbors": 3
+}

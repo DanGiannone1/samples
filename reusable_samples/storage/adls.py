@@ -132,7 +132,31 @@ class ADLSManager:
         print(message)
         return {"message": message}
     
-    
+    def download_blob(self, blob_name: str, download_path: str, container_name: str = None) -> Dict[str, str]:
+        """
+        Download a blob from Azure Blob Storage to a local file.
+
+        Args:
+            blob_name (str): The name of the blob to download.
+            download_path (str): The local path where the file should be downloaded.
+            container_name (str, optional): The name of the container. Defaults to self.storage_account_container.
+
+        Returns:
+            Dict[str, str]: A dictionary containing the download message and the local file path.
+        """
+        container_name = container_name or self.storage_account_container
+        container_client = self.blob_service_client.get_container_client(container_name)
+        blob_client = container_client.get_blob_client(blob_name)
+
+        os.makedirs(os.path.dirname(download_path), exist_ok=True)
+        
+        with open(download_path, "wb") as download_file:
+            download_file.write(blob_client.download_blob().readall())
+        
+        message = f"Blob {blob_name} downloaded successfully to {download_path}"
+        print(message)
+        return {"message": message, "local_path": download_path}
+
 def example_upload_local_file(sample_file_path):
     """Example usage of upload_to_blob function for uploading a local file."""
     adls_manager = ADLSManager()
@@ -168,10 +192,18 @@ def example_move_blob(blobs):
         move_result = adls_manager.move_blob(source_blob_name, destination_blob_name)
         print(move_result['message'])
 
+def example_download_blob(blob_name, download_path):
+    """Example usage of download_blob function."""
+    adls_manager = ADLSManager()
+    print(f"Downloading blob {blob_name} to {download_path}...")
+    download_result = adls_manager.download_blob(blob_name, download_path)
+    print(download_result['message'])
+
 if __name__ == "__main__":
     sample_file_path = "D:/temp/djg/337 Goldman Drive Inspection Report 20230730.pdf"
     
-    example_upload_local_file(sample_file_path)
-    example_upload_bytestream(sample_file_path)
-    blobs = example_list_blobs()
-    example_move_blob(blobs)
+    # example_upload_local_file(sample_file_path)
+    # example_upload_bytestream(sample_file_path)
+    # blobs = example_list_blobs()
+    # example_move_blob(blobs)
+    example_download_blob("337 Goldman Drive Inspection Report 20230730.pdf", "D:/temp/337 Goldman Drive Inspection Report 20230730.pdf")
