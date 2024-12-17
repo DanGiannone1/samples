@@ -16,12 +16,13 @@ A curated collection of code samples for quick learning and prototyping generati
   - Azure AI Search
 - **Project Type:** Educational/Reference
 - **Code Complexity:** Beginner
-- **Business Value:** Many repositories and accelerators out there are very complex, which is a roadblock to developers who are just getting started with Azure or Gen AI. This repo can help beginners rapidly learn and prototype solutions.
-- **Target Audience:** Beginner to intermediate Python developers who want to build generative AI solutions with Azure Services.
+- **Business Value:** Many repositories and accelerators out there are very complex, which is a roadblock to developers who are just getting started with Azure or Gen AI. This repo can help beginners rapidly learn and prototype solutions. For experienced developers, these examples of simple syntax with the SDK versions specified can also prove valuable. 
+- **Target Audience:** Beginner to intermediate Python developers who want to build generative AI solutions with Azure Services. Experienced developers who want to quickly prototype.
 
 ## Key Features
 
 - Clean, modular code structure
+- Very clear on what model versions, API/SDK versions, and library versions are necessary to make each module run.
 - Authentication examples using both key-based and Azure Identity
 - Integration patterns between multiple Azure services
 - RAG (Retrieval Augmented Generation) implementation examples
