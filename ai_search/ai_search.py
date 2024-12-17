@@ -133,7 +133,7 @@ class AISearchManager:
 
     def create_search_index(self) -> bool:
         """
-        Create the search index if it doesn't exist.
+        Create the search index if it doesn't exist. The index configuration is hardcoded in this method. Use create_search_index_from_config for defining a dynamic index based on a config. 
 
         Returns:
             bool: True if the index was created or already exists, False if there was an error.

@@ -1,8 +1,4 @@
 .venv/
 .env
-ragtest
-chat.py
-graphrag_test.py
-testing.py
-codebase.txt
-reusable_samples/scratchpad/
+scratchpad/*
+

@@ -22,8 +22,8 @@ load_dotenv()
 
 
 # Azure OpenAI configuration
-aoai_deployment = os.getenv("AOAI_DEPLOYMENT_NAME")
-aoai_key = os.getenv("AOAI_API_KEY")
+aoai_deployment = os.getenv("AOAI_DEPLOYMENT")
+aoai_key = os.getenv("AOAI_KEY")
 aoai_endpoint = os.getenv("AOAI_ENDPOINT")
 
 
@@ -152,19 +152,18 @@ def tool_calling_example(llm):
     print("\nFinal Answer:")
     print(final_ai_msg.content)
 
-def run_examples():
-    
-    #Basic inference
-    basic_inference_example(llm_aoai)
 
-    #Streaming inference
-    streaming_inference_example(llm_aoai)
-    
-    #Streaming & parsing JSON
-    json_parsing_example(llm_aoai)
-
-    #Tool calling
-    tool_calling_example(llm_aoai)
 
 if __name__ == "__main__":
-    run_examples()
+    
+
+    basic_inference_example(llm_aoai)
+
+
+    streaming_inference_example(llm_aoai)
+    
+
+    json_parsing_example(llm_aoai)
+
+
+    tool_calling_example(llm_aoai)
