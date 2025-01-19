@@ -8,3 +8,4 @@ flask
 langchain-openai
 azure-core
 azure-identity==1.18.0
+azure-communication-services
