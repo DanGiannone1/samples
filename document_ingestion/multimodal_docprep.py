@@ -43,7 +43,7 @@ Top-level Sections: What are the top-level sections of the document?
 ###Examples###
 User: (a large document of a home inspection report)
 Assistant: 
-Summary: Home Inspection Report for 337 Goldman Drive, Phoenixville, PA 19460, the home of Dan Giannone.
+Summary: Home Inspection Report for xxx Drive, Phoenixville, PA 19460, the home of Dan Giannone.
 Top-level Sections: General Information
 Introduction and Structural Overview
 Purpose and Scope
@@ -84,7 +84,7 @@ image_insights: All insights or information that can be gleaned from the images 
 
 User: (an image of the following text & picture) 
 <document analysis>
-Summary: Home Inspection Report for 337 Goldman Drive, Phoenixville, PA 19460, the home of Dan Giannone.
+Summary: Home Inspection Report for xxx Drive, Phoenixville, PA 19460, the home of Dan Giannone.
 top-level sections: General Information
 Introduction and Structural Overview
 Purpose and Scope
@@ -114,7 +114,7 @@ Home Inspection Report For
 
 (Image of a house)
 
-337 Goldman Drive
+xxx Drive
 Phoenixville, PA 19460
 
 ---
@@ -142,7 +142,7 @@ Phone: 610-277-4953 Fax: 610-277-4954
 
 [Image]
 
-**337 Goldman Drive  
+**xxx Drive  
 Phoenixville, PA 19460**
 
 ---
@@ -153,7 +153,7 @@ Phoenixville, PA 19460**
 *Report Prepared By*  
 **Craig Lennox**
 
-image_insights: 337 Goldman Dr, a large two-story suburban house owned by Dan Giannone. The house has the following features:
+image_insights: xxx Dr, a large two-story suburban house owned by Dan Giannone. The house has the following features:
 
 White exterior with light blue or gray trim
 Multiple peaked roof sections
@@ -303,7 +303,7 @@ def main(input_path, filename, container):
 if __name__ == "__main__":
     # Hardcode the path and filename here
     input_path = "C:/temp/data/djg"
-    filename = "337 Goldman Drive.pdf"
+    filename = "xxxx.pdf"
     container = 'djg'
     
     main(input_path, filename, container)

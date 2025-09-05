@@ -5,7 +5,8 @@
 $resourceGroupName = "djg-sandbox"
 $accountName = "djg-cosmos"
 $roleName = "CosmosDBFullAccess"
-$principalId = "16385fe6-b665-454a-a7f6-bff9d4c11279"
+$principalId = "ae210e30-0b06-4004-b410-add63c352b66"
+
 
 # Check if role definition already exists
 $existingRoleDefinitionId = $(az cosmosdb sql role definition list --account-name $accountName --resource-group $resourceGroupName --query "[?roleName=='$roleName'].name" --output tsv)
